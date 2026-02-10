@@ -28,7 +28,6 @@ class Explore extends React.Component {
         bindAll(this, [
             'getExploreState',
             'handleGetExploreMore',
-            'handleChangeSortMode',
             'handleToggleRemoveButton',
             'handleRemove',
             'getBubble'
@@ -48,12 +47,9 @@ class Explore extends React.Component {
             animations: 'animations',
             art: 'art',
             games: 'games',
-            music: 'music',
-            stories: 'stories',
-            tutorials: 'tutorial'
+            music: 'music'
         };
         const typeOptions = ['projects', 'studios'];
-        const modeOptions = ['trending', 'popular', ''];
 
         let pathname = window.location.pathname.toLowerCase();
         if (pathname[pathname.length - 1] === '/') {
@@ -63,10 +59,9 @@ class Explore extends React.Component {
         const options = pathname.split('/');
         const type = options[2];
         const currentCategory = options[3];
-        const currentMode = options.length > 4 ? options[4] : '';
         if (Object.keys(categoryOptions).indexOf(currentCategory) === -1 ||
-        typeOptions.indexOf(type) === -1 ||
-        modeOptions.indexOf(currentMode) === -1){
+            typeOptions.indexOf(type) === -1 ||
+            currentCategory === categoryOptions.all) {
             window.location = `${window.location.origin}/explore/projects/all/`;
         }
 
@@ -74,18 +69,15 @@ class Explore extends React.Component {
             category: currentCategory,
             acceptableTabs: categoryOptions,
             acceptableTypes: typeOptions,
-            acceptableModes: modeOptions,
             itemType: type,
-            mode: currentMode,
             loadNumber: 16
         };
     }
     handleGetExploreMore () {
         const qText = `&q=${this.state.acceptableTabs[this.state.category]}` || '*';
-        const mode = `&mode=${(this.state.mode ? this.state.mode : 'trending')}`;
         const locale = getLocale();
         const queryString =
-            `limit=${this.state.loadNumber}&offset=${this.state.offset}&language=${locale}${mode}${qText}`;
+            `limit=${this.state.loadNumber}&offset=${this.state.offset}&language=${locale}${qText}`;
 
         api({
             uri: `/explore/${this.state.itemType}?${queryString}`
@@ -98,13 +90,6 @@ class Explore extends React.Component {
                 this.setState({offset: currentOffset});
             }
         });
-    }
-
-    handleChangeSortMode (name, value) {
-        if (this.state.acceptableModes.indexOf(value) !== -1) {
-            window.location =
-                `${window.location.origin}/explore/${this.state.itemType}/${this.state.category}/${value}`;
-        }
     }
 
     handleToggleRemoveButton (e) {
@@ -132,7 +117,7 @@ class Explore extends React.Component {
             active: (this.state.category === type)
         });
         return (
-            <a href={`/explore/${this.state.itemType}/${type}/${this.state.mode}`}>
+            <a href={`/explore/${this.state.itemType}/${type}`}>
                 <li className={classes}>
                     <FormattedMessage id={`general.${type}`} />
                 </li>
@@ -157,7 +142,7 @@ class Explore extends React.Component {
                                 name: 'projects',
                                 onTrigger: () => {
                                     window.location = `${window.location.origin}/explore/projects/` +
-                                        `${this.state.category}/${this.state.mode}`;
+                                        `${this.state.category}/`;
                                 },
                                 getContent: isActive => (
                                     <div>
@@ -182,8 +167,7 @@ class Explore extends React.Component {
                             {
                                 name: 'studios',
                                 onTrigger: () => {
-                                    window.location = `${window.location.origin}/explore/studios/` +
-                                        `${this.state.category}/${this.state.mode}`;
+                                    window.location = `${window.location.origin}/explore/studios/all`;
                                 },
                                 getContent: isActive => (
                                     <div>
@@ -215,27 +199,7 @@ class Explore extends React.Component {
                             {this.getBubble('art')}
                             {this.getBubble('games')}
                             {this.getBubble('music')}
-                            {this.getBubble('stories')}
-                            {this.getBubble('tutorials')}
                         </SubNavigation>
-                        <Form className="sort-mode">
-                            <Select
-                                aria-label={this.props.intl.formatMessage({id: 'general.status'})}
-                                name="sort"
-                                options={[
-                                    {
-                                        value: 'trending',
-                                        label: this.props.intl.formatMessage({id: 'explore.trending'})
-                                    },
-                                    {
-                                        value: 'popular',
-                                        label: this.props.intl.formatMessage({id: 'explore.popular'})
-                                    }
-                                ]}
-                                value={this.state.mode}
-                                onChange={this.handleChangeSortMode}
-                            />
-                        </Form>
                     </div>
                     {this.props.session?.session?.permissions?.admin && (
                         <div className="sort-controls">
